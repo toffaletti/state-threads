@@ -149,6 +149,11 @@ typedef struct _st_stack {
 #ifdef __ia64__
   void *bsp;                  /* Register stack backing store pointer */
 #endif
+#ifndef NVALGRIND
+  /* id returned by VALGRIND_STACK_REGISTER */
+  /* http://valgrind.org/docs/manual/manual-core-adv.html */
+  unsigned int valgrind_stack_id;
+#endif
 } _st_stack_t;
 
 
