@@ -29,8 +29,8 @@ SET_SOURCE_FILES_PROPERTIES(md.S PROPERTIES LANGUAGE C)
 add_library(st STATIC md.S event.c io.c  key.c  sched.c  stk.c  sync.c)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-#add_executable(server examples/server.c examples/error.c)
-#target_link_libraries(server st)
+add_executable(server examples/server.c examples/error.c)
+target_link_libraries(server st)
 
 add_executable(lookupdns examples/lookupdns.c examples/res.c)
 target_link_libraries(lookupdns st resolv)
