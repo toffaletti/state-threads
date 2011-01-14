@@ -45,6 +45,7 @@
 #include <pwd.h>
 #include "st.h"
 
+#include "error.h"
 
 /******************************************************************
  * Server configuration parameters
@@ -83,7 +84,7 @@
 
 struct socket_info {
   st_netfd_t nfd;               /* Listening socket                     */
-  char *addr;                   /* Bind address                         */
+  const char *addr;             /* Bind address                         */
   unsigned int port;            /* Port                                 */
   int wait_threads;             /* Number of threads waiting to accept  */
   int busy_threads;             /* Number of threads processing request */
@@ -165,14 +166,6 @@ extern void load_configs(void);
 extern void logbuf_open(void);
 extern void logbuf_flush(void);
 extern void logbuf_close(void);
-
-/* Error reporting functions defined in the error.c file */
-extern void err_sys_report(int fd, const char *fmt, ...);
-extern void err_sys_quit(int fd, const char *fmt, ...);
-extern void err_sys_dump(int fd, const char *fmt, ...);
-extern void err_report(int fd, const char *fmt, ...);
-extern void err_quit(int fd, const char *fmt, ...);
-
 
 /*
  * General server example: accept a client connection and do something.
@@ -291,7 +284,6 @@ static void usage(const char *progname)
 
 static void parse_arguments(int argc, char *argv[])
 {
-  extern char *optarg;
   int opt;
   char *c;
 

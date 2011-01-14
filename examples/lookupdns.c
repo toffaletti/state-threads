@@ -38,6 +38,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include "st.h"
+#include "res.h"
 
 #if !defined(NETDB_INTERNAL) && defined(h_NETDB_INTERNAL)
 #define NETDB_INTERNAL h_NETDB_INTERNAL
@@ -46,11 +47,8 @@
 /* Resolution timeout (in microseconds) */
 #define TIMEOUT (2*1000000LL)
 
-/* External function defined in the res.c file */
-int dns_getaddr(const char *host, struct in_addr *addr, st_utime_t timeout);
 
-
-void *do_resolve(void *host)
+static void *do_resolve(void *host)
 {
   struct in_addr addr;
 

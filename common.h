@@ -58,11 +58,7 @@
 #define ST_BEGIN_MACRO  {
 #define ST_END_MACRO    }
 
-#ifdef DEBUG
-#define ST_HIDDEN   /*nothing*/
-#else
-#define	ST_HIDDEN   static
-#endif
+#define ST_HIDDEN   static
 
 #include "public.h"
 #include "md.h"
@@ -377,7 +373,6 @@ extern _st_eventsys_t *_st_eventsys;
  */
 
 #ifdef DEBUG
-void _st_iterate_threads(void);
 #define ST_DEBUG_ITERATE_THREADS() _st_iterate_threads()
 #else
 #define ST_DEBUG_ITERATE_THREADS()
@@ -454,18 +449,6 @@ void _st_del_sleep_q(_st_thread_t *thread);
 _st_stack_t *_st_stack_new(int stack_size);
 void _st_stack_free(_st_stack_t *ts);
 int _st_io_init(void);
-
-st_utime_t st_utime(void);
-_st_cond_t *st_cond_new(void);
-int st_cond_destroy(_st_cond_t *cvar);
-int st_cond_timedwait(_st_cond_t *cvar, st_utime_t timeout);
-int st_cond_signal(_st_cond_t *cvar);
-ssize_t st_read(_st_netfd_t *fd, void *buf, size_t nbyte, st_utime_t timeout);
-ssize_t st_write(_st_netfd_t *fd, const void *buf, size_t nbyte,
-		 st_utime_t timeout);
-int st_poll(struct pollfd *pds, int npds, st_utime_t timeout);
-_st_thread_t *st_thread_create(void *(*start)(void *arg), void *arg,
-			      int joinable, int stk_size);
 
 #endif /* !__ST_COMMON_H__ */
 

@@ -36,6 +36,8 @@
 #include <errno.h>
 #include "st.h"
 
+#include "error.h"
+
 /*
  * Simple error reporting functions.
  * Suggested in W. Richard Stevens' "Advanced Programming in UNIX
@@ -124,9 +126,9 @@ void err_quit(int fd, const char *fmt, ...)
 /*
  * Return a pointer to a string containing current time.
  */
-char *err_tstamp(void)
+static char *err_tstamp(void)
 {
-  static char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  static const char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
   static char str[32];
   static time_t lastt = 0;

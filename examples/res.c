@@ -75,6 +75,8 @@
 #include <errno.h>
 #include "st.h"
 
+#include "res.h"
+
 #define MAXPACKET 1024
 
 #if !defined(NETDB_INTERNAL) && defined(h_NETDB_INTERNAL)
@@ -84,6 +86,8 @@
 /* New in Solaris 7 */
 #if !defined(_getshort) && defined(ns_get16)
 #define _getshort(cp) ns_get16(cp)
+#elif !defined(_getshort)
+extern int _getshort(unsigned char *);
 #endif
 
 typedef union {
