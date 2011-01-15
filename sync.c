@@ -44,10 +44,10 @@
 #include <errno.h>
 #include "common.h"
 
-
-extern time_t _st_curr_time;
-extern st_utime_t _st_last_tset;
-extern int _st_active_count;
+/* defined in sched.c */
+extern __thread time_t _st_curr_time;
+extern __thread st_utime_t _st_last_tset;
+extern __thread int _st_active_count;
 
 static st_utime_t (*_st_utime)(void) = NULL;
 

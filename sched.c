@@ -45,6 +45,7 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#include <pthread.h>
 #include "common.h"
 
 #ifndef NVALGRIND
@@ -52,12 +53,15 @@
 #endif
 
 /* Global data */
-_st_vp_t _st_this_vp;           /* This VP */
-_st_thread_t *_st_this_thread;  /* Current thread */
-int _st_active_count = 0;       /* Active thread count */
+__thread _st_vp_t _st_this_vp;           /* This VP */
+__thread _st_thread_t *_st_this_thread;  /* Current thread */
+__thread int _st_active_count = 0;       /* Active thread count */
 
-time_t _st_curr_time = 0;       /* Current time as returned by time(2) */
-st_utime_t _st_last_tset;       /* Last time it was fetched */
+__thread time_t _st_curr_time = 0;       /* Current time as returned by time(2) */
+__thread st_utime_t _st_last_tset;       /* Last time it was fetehed */
+
+/* To be set from debugger */
+int _st_iterate_threads_flag = 0;
 
 
 int st_poll(struct pollfd *pds, int npds, st_utime_t timeout)
@@ -130,6 +134,8 @@ void _st_vp_schedule(void)
   _ST_RESTORE_CONTEXT(thread);
 }
 
+static pthread_once_t io_once_control = PTHREAD_ONCE_INIT;
+extern __thread _st_clist_t _st_free_stacks;
 
 /*
  * Initialize this Virtual Processor
@@ -143,11 +149,12 @@ int st_init(void)
     return 0;
   }
 
+  ST_INIT_CLIST(&_st_free_stacks);
+
   /* We can ignore return value here */
   st_set_eventsys(ST_EVENTSYS_DEFAULT);
 
-  if (_st_io_init() < 0)
-    return -1;
+  pthread_once(&io_once_control, (void (*)(void))_st_io_init);
 
   memset(&_st_this_vp, 0, sizeof(_st_vp_t));
 
@@ -182,6 +189,7 @@ int st_init(void)
 				   (ST_KEYS_MAX * sizeof(void *)));
   if (!thread)
     return -1;
+  _st_this_vp.primorial_thread = thread;
   thread->private_data = (void **) (thread + 1);
   thread->state = _ST_ST_RUNNING;
   thread->flags = _ST_FL_PRIMORDIAL;
@@ -232,7 +240,11 @@ void *_st_idle_thread_start(void *arg)
   }
 
   /* No more threads */
-  exit(0);
+  free(_st_this_vp.primorial_thread);
+  /* Free resources in use by event system */
+  (*_st_eventsys->free)();
+
+  pthread_exit(NULL);
 
   /* NOTREACHED */
   return NULL;
@@ -272,8 +284,10 @@ void st_thread_exit(void *retval)
   }
 #endif
 
-  if (!(thread->flags & _ST_FL_PRIMORDIAL))
+  if (!(thread->flags & _ST_FL_PRIMORDIAL)) {
     _st_stack_free(thread->stack);
+  }
+
 
   /* Find another thread to run */
   _ST_SWITCH_CONTEXT(thread);
@@ -640,9 +654,6 @@ void _st_show_thread_stack(_st_thread_t *thread, const char *messg)
 {
 
 }
-
-/* To be set from debugger */
-int _st_iterate_threads_flag = 0;
 
 void _st_iterate_threads(void)
 {

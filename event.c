@@ -53,7 +53,7 @@
 #endif
 
 
-static struct _st_seldata {
+static __thread struct _st_seldata {
     fd_set fd_read_set, fd_write_set, fd_exception_set;
     int fd_ref_cnts[FD_SETSIZE][3];
     int maxfd;
@@ -69,7 +69,7 @@ static struct _st_seldata {
 
 
 #ifdef MD_HAVE_POLL
-static struct _st_polldata {
+static __thread struct _st_polldata {
     struct pollfd *pollfds;
     int pollfds_size;
     int fdcnt;
@@ -88,7 +88,7 @@ typedef struct _kq_fd_data {
     int revents;
 } _kq_fd_data_t;
 
-static struct _st_kqdata {
+static __thread struct _st_kqdata {
     _kq_fd_data_t *fd_data;
     struct kevent *evtlist;
     struct kevent *addlist;
@@ -121,7 +121,7 @@ typedef struct _epoll_fd_data {
     int revents;
 } _epoll_fd_data_t;
 
-static struct _st_epolldata {
+static __thread struct _st_epolldata {
     _epoll_fd_data_t *fd_data;
     struct epoll_event *evtlist;
     int fd_data_size;
@@ -150,7 +150,7 @@ static struct _st_epolldata {
 
 #endif  /* MD_HAVE_EPOLL */
 
-_st_eventsys_t *_st_eventsys = NULL;
+__thread _st_eventsys_t *_st_eventsys = NULL;
 
 
 /*****************************************
@@ -167,6 +167,11 @@ ST_HIDDEN int _st_select_init(void)
     _st_select_data->maxfd = -1;
 
     return 0;
+}
+
+ST_HIDDEN void _st_select_free(void)
+{
+    free(_st_select_data);
 }
 
 ST_HIDDEN int _st_select_pollset_add(struct pollfd *pds, int npds)
@@ -436,6 +441,7 @@ static _st_eventsys_t _st_select_eventsys = {
     "select",
     ST_EVENTSYS_SELECT,
     _st_select_init,
+    _st_select_free,
     _st_select_dispatch,
     _st_select_pollset_add,
     _st_select_pollset_del,
@@ -467,6 +473,12 @@ ST_HIDDEN int _st_poll_init(void)
     _ST_POLL_OSFD_CNT = 0;
 
     return 0;
+}
+
+
+ST_HIDDEN void _st_poll_free(void) {
+    free(_ST_POLLFDS);
+    free(_st_poll_data);
 }
 
 ST_HIDDEN int _st_poll_pollset_add(struct pollfd *pds, int npds)
@@ -588,6 +600,7 @@ static _st_eventsys_t _st_poll_eventsys = {
     "poll",
     ST_EVENTSYS_POLL,
     _st_poll_init,
+    _st_poll_free,
     _st_poll_dispatch,
     _st_poll_pollset_add,
     _st_poll_pollset_del,
@@ -602,7 +615,17 @@ static _st_eventsys_t _st_poll_eventsys = {
 /*****************************************
  * kqueue event system
  */
-                    
+
+ST_HIDDEN void _st_kq_free(void) {
+    if (_st_kq_data->kq >= 0)
+        close(_st_kq_data->kq);
+    free(_st_kq_data->fd_data);
+    free(_st_kq_data->evtlist);
+    free(_st_kq_data->addlist);
+    free(_st_kq_data->dellist);
+    free(_st_kq_data);
+}
+
 ST_HIDDEN int _st_kq_init(void)
 {
     int err = 0;
@@ -651,13 +674,7 @@ ST_HIDDEN int _st_kq_init(void)
 
  cleanup_kq:
     if (rv < 0) {
-        if (_st_kq_data->kq >= 0)
-            close(_st_kq_data->kq);
-        free(_st_kq_data->fd_data);
-        free(_st_kq_data->evtlist);
-        free(_st_kq_data->addlist);
-        free(_st_kq_data->dellist);
-        free(_st_kq_data);
+        _st_kq_free();
         _st_kq_data = NULL;
         errno = err;
     }
@@ -1015,6 +1032,7 @@ static _st_eventsys_t _st_kq_eventsys = {
     "kqueue",
     ST_EVENTSYS_ALT,
     _st_kq_init,
+    _st_kq_free,
     _st_kq_dispatch,
     _st_kq_pollset_add,
     _st_kq_pollset_del,
@@ -1029,6 +1047,14 @@ static _st_eventsys_t _st_kq_eventsys = {
 /*****************************************
  * epoll event system
  */
+
+ST_HIDDEN void _st_epoll_free(void) {
+    if (_st_epoll_data->epfd >= 0)
+        close(_st_epoll_data->epfd);
+    free(_st_epoll_data->fd_data);
+    free(_st_epoll_data->evtlist);
+    free(_st_epoll_data);
+}
 
 ST_HIDDEN int _st_epoll_init(void)
 {
@@ -1076,11 +1102,7 @@ ST_HIDDEN int _st_epoll_init(void)
 
  cleanup_epoll:
     if (rv < 0) {
-        if (_st_epoll_data->epfd >= 0)
-            close(_st_epoll_data->epfd);
-        free(_st_epoll_data->fd_data);
-        free(_st_epoll_data->evtlist);
-        free(_st_epoll_data);
+        _st_epoll_free();
         _st_epoll_data = NULL;
         errno = err;
     }
@@ -1384,6 +1406,7 @@ static _st_eventsys_t _st_epoll_eventsys = {
     "epoll",
     ST_EVENTSYS_ALT,
     _st_epoll_init,
+    _st_epoll_free,
     _st_epoll_dispatch,
     _st_epoll_pollset_add,
     _st_epoll_pollset_del,

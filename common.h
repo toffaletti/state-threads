@@ -208,6 +208,7 @@ typedef struct _st_eventsys_ops {
   const char *name;                          /* Name of this event system */
   int  val;                                  /* Type of this event system */
   int  (*init)(void);                        /* Initialization */
+  void (*free)(void);                        /* Free memory */
   void (*dispatch)(void);                    /* Dispatch function */
   int  (*pollset_add)(struct pollfd *, int); /* Add descriptor set */
   void (*pollset_del)(struct pollfd *, int); /* Delete descriptor set */
@@ -218,6 +219,7 @@ typedef struct _st_eventsys_ops {
 
 
 typedef struct _st_vp {
+  _st_thread_t *primorial_thread;
   _st_thread_t *idle_thread;  /* Idle thread for this vp */
   st_utime_t last_clock;      /* The last time we went into vp_check_clock() */
 
@@ -253,9 +255,9 @@ typedef struct _st_netfd {
  * Current vp, thread, and event system
  */
 
-extern _st_vp_t	    _st_this_vp;
-extern _st_thread_t *_st_this_thread;
-extern _st_eventsys_t *_st_eventsys;
+extern __thread _st_vp_t	    _st_this_vp;
+extern __thread _st_thread_t *_st_this_thread;
+extern __thread _st_eventsys_t *_st_eventsys;
 
 #define _ST_CURRENT_THREAD()            (_st_this_thread)
 #define _ST_SET_CURRENT_THREAD(_thread) (_st_this_thread = (_thread))

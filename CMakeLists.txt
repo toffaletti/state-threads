@@ -34,3 +34,6 @@ target_link_libraries(server st)
 
 add_executable(lookupdns examples/lookupdns.c examples/res.c)
 target_link_libraries(lookupdns st resolv)
+
+add_executable(threaded examples/threaded.c)
+target_link_libraries(threaded st)
