@@ -11,7 +11,7 @@ set(CMAKE_C_FLAGS_DEBUG "-DDEBUG -g3 -ggdb")
 set(CMAKE_C_FLAGS
   "${CMAKE_C_FLAGS} -fPIC -std=gnu99 -pedantic -pthread -Wall -Wpointer-arith -Wno-format-y2k -Wstrict-prototypes -Wmissing-declarations -Wnested-externs -Wextra -Wundef -Wwrite-strings -Wold-style-definition -Wno-missing-field-initializers -Wredundant-decls -Wno-unused-parameter -Wno-sign-compare -Wmissing-prototypes")
 
-add_definitions(-DMD_HAVE_EPOLL -DLINUX)
+add_definitions(-DMD_HAVE_EPOLL -DLINUX -D_GNU_SOURCE)
 
 # check for valgrind. this should really be in FindValgrind.cmake
 # http://www.itk.org/Wiki/CMake:How_To_Find_Installed_Software
