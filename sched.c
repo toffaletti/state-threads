@@ -490,10 +490,9 @@ void _st_del_sleep_q(_st_thread_t *thread)
 void _st_vp_check_clock(void)
 {
   _st_thread_t *thread;
-  st_utime_t elapsed, now;
- 
+  st_utime_t now;
+
   now = st_utime();
-  elapsed = now - _ST_LAST_CLOCK;
   _ST_LAST_CLOCK = now;
 
   if (_st_curr_time && now - _st_last_tset > 999000) {
