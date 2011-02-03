@@ -1,4 +1,4 @@
-project(st-1.9)
+project(state-threads)
 
 cmake_minimum_required(VERSION 2.6)
 
@@ -19,7 +19,7 @@ find_file(VALGRIND_H valgrind.h /usr/include/valgrind /usr/local/include/valgrin
 message("valgrind headers: ${VALGRIND_H}")
 if(NOT VALGRIND_H)
 # this will remove valgrind stack tracking support from state-threads
-add_definitions(-DNVALGRIND)
+  add_definitions(-DNVALGRIND)
 endif(NOT VALGRIND_H)
 
 exec_program(${CMAKE_COMMAND} ARGS -E copy ${CMAKE_CURRENT_SOURCE_DIR}/public.h ${CMAKE_CURRENT_BINARY_DIR}/st.h)
