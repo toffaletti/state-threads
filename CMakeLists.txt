@@ -37,3 +37,5 @@ target_link_libraries(lookupdns st resolv)
 
 add_executable(threaded examples/threaded.c)
 target_link_libraries(threaded st)
+
+add_subdirectory(extensions)
