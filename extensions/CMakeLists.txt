@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
+project(stx)
 
 add_definitions(-D_GNU_SOURCE)
 
