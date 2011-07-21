@@ -82,6 +82,10 @@ static void _free_netfd(BIO *b) {
             st_netfd_free(s->nfd);
         }
         s->nfd = NULL;
+    } else if (b->num) {
+        /* see note for BIO_C_SET_FD:
+         * there is a case where the fd is set, but netfd is not */
+         close(b->num);
     }
     if (s->param_hostname != NULL)
         OPENSSL_free(s->param_hostname);
@@ -201,6 +205,10 @@ static long netfd_ctrl(BIO *b, int cmd, long num, void *ptr) {
             b->num = *((int *)ptr);
             b->shutdown = (int)num;
             b->init = 1;
+            /* according to the SSL docs, this should always return 1
+             * however, st_netfd_open might fail if the fd is too large
+             * for select (>1024 on some kernels). _free_netfd should handle
+             * this case where the fd exists, but st_netfd_t doesn't */
             s->nfd = st_netfd_open(b->num);
             break;
         case BIO_C_GET_FD:
