@@ -39,6 +39,7 @@
  * and consists of extensive modifications made during the year(s) 1999-2000.
  */
 
+#include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -61,6 +62,7 @@
 
 #define _LOCAL_MAXIOV  16
 
+static pthread_mutex_t _st_netfd_freelist_mutex = PTHREAD_MUTEX_INITIALIZER;
 /* File descriptor object free list */
 static _st_netfd_t *_st_netfd_freelist = NULL;
 /* Maximum number of file descriptors that the process can open */
@@ -116,8 +118,10 @@ void st_netfd_free(_st_netfd_t *fd)
     (*(fd->destructor))(fd->private_data);
   fd->private_data = NULL;
   fd->destructor = NULL;
+  pthread_mutex_lock(&_st_netfd_freelist_mutex);
   fd->next = _st_netfd_freelist;
   _st_netfd_freelist = fd;
+  pthread_mutex_unlock(&_st_netfd_freelist_mutex);
 }
 
 
@@ -129,10 +133,13 @@ static _st_netfd_t *_st_netfd_new(int osfd, int nonblock, int is_socket)
   if ((*_st_eventsys->fd_new)(osfd) < 0)
     return NULL;
 
+  pthread_mutex_lock(&_st_netfd_freelist_mutex);
   if (_st_netfd_freelist) {
     fd = _st_netfd_freelist;
     _st_netfd_freelist = _st_netfd_freelist->next;
+    pthread_mutex_unlock(&_st_netfd_freelist_mutex);
   } else {
+    pthread_mutex_unlock(&_st_netfd_freelist_mutex);
     fd = calloc(1, sizeof(_st_netfd_t));
     if (!fd)
       return NULL;
