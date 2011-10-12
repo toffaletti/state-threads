@@ -48,10 +48,6 @@
 #include <sys/time.h>
 #include <setjmp.h>
 
-/* Enable assertions only if DEBUG is defined */
-#ifndef DEBUG
-#define NDEBUG
-#endif
 #include <assert.h>
 #define ST_ASSERT(expr) assert(expr)
 

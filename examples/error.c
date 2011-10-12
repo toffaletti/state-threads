@@ -164,7 +164,8 @@ static void err_doit(int fd, int errnoflag, const char *fmt, va_list ap)
     sprintf(buf + strlen(buf), ": %s\n", strerror(errno_save));
   else
     strcat(buf, "\n");
-  write(fd, buf, strlen(buf));
+  ssize_t nw = write(fd, buf, strlen(buf));
+  (void)nw;
   errno = errno_save;
 }
 

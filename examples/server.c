@@ -908,7 +908,8 @@ static void dump_server_info(void)
 		   WAIT_THREADS(i), BUSY_THREADS(i), RQST_COUNT(i));
   }
 
-  write(STDERR_FILENO, buf, len);
+  ssize_t nw = write(STDERR_FILENO, buf, len);
+  (void)nw;
   free(buf);
 }
 
