@@ -54,7 +54,5 @@ int main(int argc, char *argv[]) {
     }
 
     st_thread_exit(NULL);
-    printf("does not happen\n");
-
-    return 1;
+    return 0;
 }

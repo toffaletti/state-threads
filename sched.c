@@ -239,14 +239,11 @@ void *_st_idle_thread_start(void *arg)
     _ST_SWITCH_CONTEXT(me);
   }
 
+  _ST_RESTORE_CONTEXT(_st_this_vp.primorial_thread);
   /* No more threads */
   free(_st_this_vp.primorial_thread);
   /* Free resources in use by event system */
   (*_st_eventsys->free)();
-
-  pthread_exit(NULL);
-
-  /* NOTREACHED */
   return NULL;
 }
 
@@ -288,10 +285,10 @@ void st_thread_exit(void *retval)
     _st_stack_free(thread->stack);
   }
 
-
   /* Find another thread to run */
   _ST_SWITCH_CONTEXT(thread);
-  /* Not going to land here */
+  free(thread);
+  (*_st_eventsys->free)();
 }
 
 
